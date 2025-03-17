@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import { AUTH_ENDPOINT, RESPONSE_TYPE, SPOTIFY_CLIENT_ID, SCOPES, REDIRECT_URI } from './config/spotify'
+import PlaylistView from './components/PlaylistView'
 
 function App() {
   const [token, setToken] = useState<string | null>(null)
@@ -66,14 +67,17 @@ function App() {
           {error ? (
             <p className="error">{error}</p>
           ) : currentTrack ? (
-            <div className="track-info">
-              <img 
-                src={currentTrack.item.album.images[0].url} 
-                alt={currentTrack.item.album.name}
-                className="album-cover"
-              />
-              <p>{currentTrack.item.name} - {currentTrack.item.artists[0].name}</p>
-            </div>
+            <>
+              <div className="track-info">
+                <img 
+                  src={currentTrack.item.album.images[0].url} 
+                  alt={currentTrack.item.album.name}
+                  className="album-cover"
+                />
+                <p>{currentTrack.item.name} - {currentTrack.item.artists[0].name}</p>
+              </div>
+              <PlaylistView token={token} />
+            </>
           ) : (
             <p>Loading...</p>
           )}

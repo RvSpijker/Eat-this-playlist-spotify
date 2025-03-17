@@ -56,3 +56,55 @@
   color: #333;
   margin: 0;
 }
+
+.playlist-view {
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.playlist-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.playlist-cover {
+  width: 100px;
+  height: 100px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.track-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.track-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s;
+}
+
+.track-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.track-name {
+  font-weight: 500;
+}
+
+.track-artist {
+  color: #666;
+}
+
+.track-duration {
+  color: #666;
+  font-family: monospace;
+}
