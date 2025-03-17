@@ -92,7 +92,7 @@ function App() {
                   <PlaylistView token={token} onPlaylistChange={setCurrentPlaylist} currentPlaylist={currentPlaylist} />
                 </div>
                 <div className="right-content">
-                  <SnakeGame albumCoverUrl={currentTrack.item.album.images[0].url} playlist={currentPlaylist} />
+                  <SnakeGame albumCoverUrl={currentTrack.item.album.images[0].url} playlist={currentPlaylist} token={token} />
                 </div>
               </div>
             </>

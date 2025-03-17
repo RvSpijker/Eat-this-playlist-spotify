@@ -8,10 +8,13 @@ interface SnakeSegment {
 
 interface SnakeGameProps {
   albumCoverUrl: string
+  token?: string
   playlist?: {
     tracks: {
       items: Array<{
         track: {
+          id: string
+          uri: string
           album: {
             images: Array<{ url: string }>
           }
@@ -21,14 +24,19 @@ interface SnakeGameProps {
   }
 }
 
-export default function SnakeGame({ albumCoverUrl, playlist }: SnakeGameProps) {
+interface FoodPosition extends Position {
+  trackUri?: string
+}
+
+export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [snake, setSnake] = useState<SnakeSegment[]>([{ x: 10, y: 10, albumCover: albumCoverUrl }])
-  const [food, setFood] = useState<Position>({ x: 5, y: 5 })
+  const [food, setFood] = useState<FoodPosition>({ x: 5, y: 5 })
   const [direction, setDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT')
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
   const [currentFoodImage, setCurrentFoodImage] = useState(albumCoverUrl)
+  const [currentFoodTrackUri, setCurrentFoodTrackUri] = useState<string>()
 
   // Load album cover image
   useEffect(() => {
@@ -115,6 +123,22 @@ export default function SnakeGame({ albumCoverUrl, playlist }: SnakeGameProps) {
             const randomTrackIndex = Math.floor(Math.random() * playlist.tracks.items.length)
             const randomTrack = playlist.tracks.items[randomTrackIndex].track
             setCurrentFoodImage(randomTrack.album.images[0].url)
+            setCurrentFoodTrackUri(randomTrack.uri)
+            setFood(prev => ({ ...prev, trackUri: randomTrack.uri }))
+          }
+          
+          // Play the collected track
+          if (token && food.trackUri) {
+            fetch('https://api.spotify.com/v1/me/player/play', {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                uris: [food.trackUri]
+              })
+            }).catch(console.error)
           }
         }
 
