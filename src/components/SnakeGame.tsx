@@ -1,21 +1,34 @@
 import { useEffect, useRef, useState } from 'react'
 
-interface Position {
+interface SnakeSegment {
   x: number
   y: number
+  albumCover: string
 }
 
 interface SnakeGameProps {
   albumCoverUrl: string
+  playlist?: {
+    tracks: {
+      items: Array<{
+        track: {
+          album: {
+            images: Array<{ url: string }>
+          }
+        }
+      }>
+    }
+  }
 }
 
-export default function SnakeGame({ albumCoverUrl }: SnakeGameProps) {
+export default function SnakeGame({ albumCoverUrl, playlist }: SnakeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [snake, setSnake] = useState<Position[]>([{ x: 10, y: 10 }])
+  const [snake, setSnake] = useState<SnakeSegment[]>([{ x: 10, y: 10, albumCover: albumCoverUrl }])
   const [food, setFood] = useState<Position>({ x: 5, y: 5 })
   const [direction, setDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT')
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
+  const [currentFoodImage, setCurrentFoodImage] = useState(albumCoverUrl)
 
   // Load album cover image
   useEffect(() => {
@@ -67,17 +80,42 @@ export default function SnakeGame({ albumCoverUrl }: SnakeGameProps) {
           return prevSnake
         }
 
-        newSnake.unshift(head)
+        // Move each segment to follow the one in front of it, preserving album covers
+        for (let i = newSnake.length - 1; i > 0; i--) {
+          newSnake[i] = { 
+            x: newSnake[i - 1].x,
+            y: newSnake[i - 1].y,
+            albumCover: newSnake[i].albumCover
+          }
+        }
+        
+        // Update head position and keep its album cover
+        head.albumCover = newSnake[0].albumCover
+        newSnake[0] = head
 
         // Check food collision
         if (head.x === food.x && head.y === food.y) {
           setScore(prev => prev + 1)
-          setFood({
+          // Add new segment at the end with the head's album cover
+          newSnake.push({ 
+            x: newSnake[newSnake.length - 1].x,
+            y: newSnake[newSnake.length - 1].y,
+            albumCover: head.albumCover
+          })
+          // Update head with food's album cover
+          head.albumCover = currentFoodImage
+          const newFood = {
             x: Math.floor(Math.random() * 20),
             y: Math.floor(Math.random() * 20)
-          })
-        } else {
-          newSnake.pop()
+          }
+          setFood(newFood)
+          
+          // Set random track's album cover as food image
+          if (playlist?.tracks.items.length) {
+            const randomTrackIndex = Math.floor(Math.random() * playlist.tracks.items.length)
+            const randomTrack = playlist.tracks.items[randomTrackIndex].track
+            setCurrentFoodImage(randomTrack.album.images[0].url)
+          }
         }
 
         return newSnake
@@ -122,15 +160,16 @@ export default function SnakeGame({ albumCoverUrl }: SnakeGameProps) {
     ctx.fillStyle = '#282828'
     ctx.fillRect(0, 0, 400, 400)
 
-    // Draw snake
-    ctx.fillStyle = '#1DB954'
-    snake.forEach(({ x, y }) => {
-      ctx.fillRect(x * 20, y * 20, 18, 18)
+    // Draw snake segments with their respective album covers
+    snake.forEach(({ x, y, albumCover }) => {
+      const img = new Image()
+      img.src = albumCover
+      ctx.drawImage(img, x * 20, y * 20, 18, 18)
     })
 
     // Draw food (album cover)
     const img = new Image()
-    img.src = albumCoverUrl
+    img.src = currentFoodImage
     ctx.drawImage(img, food.x * 20, food.y * 20, 20, 20)
   }, [snake, food, albumCoverUrl])
 
@@ -147,7 +186,7 @@ export default function SnakeGame({ albumCoverUrl }: SnakeGameProps) {
         {gameOver && (
           <button
             onClick={() => {
-              setSnake([{ x: 10, y: 10 }])
+              setSnake([{ x: 10, y: 10, albumCover: albumCoverUrl }])
               setDirection('RIGHT')
               setScore(0)
               setGameOver(false)

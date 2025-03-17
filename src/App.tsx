@@ -4,9 +4,19 @@ import { AUTH_ENDPOINT, RESPONSE_TYPE, SPOTIFY_CLIENT_ID, SCOPES, REDIRECT_URI }
 import PlaylistView from './components/PlaylistView'
 import SnakeGame from './components/SnakeGame'
 
+interface Playlist {
+  id: string
+  name: string
+  images: Array<{ url: string }>
+  tracks: {
+    items: Array<{ track: any }>
+  }
+}
+
 function App() {
   const [token, setToken] = useState<string | null>(null)
   const [currentTrack, setCurrentTrack] = useState<any>(null)
+  const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -79,10 +89,10 @@ function App() {
                     />
                     <p>{currentTrack.item.name} - {currentTrack.item.artists[0].name}</p>
                   </div>
-                  <PlaylistView token={token} />
+                  <PlaylistView token={token} onPlaylistChange={setCurrentPlaylist} currentPlaylist={currentPlaylist} />
                 </div>
                 <div className="right-content">
-                  <SnakeGame albumCoverUrl={currentTrack.item.album.images[0].url} />
+                  <SnakeGame albumCoverUrl={currentTrack.item.album.images[0].url} playlist={currentPlaylist} />
                 </div>
               </div>
             </>

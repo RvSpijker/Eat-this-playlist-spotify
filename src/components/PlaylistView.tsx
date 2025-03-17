@@ -19,10 +19,11 @@ interface Playlist {
 
 interface PlaylistViewProps {
   token: string
+  currentPlaylist: Playlist | null
+  onPlaylistChange: (playlist: Playlist | null) => void
 }
 
-export default function PlaylistView({ token }: PlaylistViewProps) {
-  const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null)
+export default function PlaylistView({ token, currentPlaylist, onPlaylistChange }: PlaylistViewProps) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -60,7 +61,7 @@ export default function PlaylistView({ token }: PlaylistViewProps) {
         }
 
         const playlistData = await playlistResponse.json()
-        setCurrentPlaylist(playlistData)
+        onPlaylistChange(playlistData)
         setError(null)
       } catch (err) {
         setError('Error fetching playlist information')
