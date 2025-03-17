@@ -83,6 +83,37 @@ export default function PlaylistView({ token }: PlaylistViewProps) {
     return <p>Loading playlist...</p>
   }
 
+  const playTrack = async (trackIndex: number) => {
+    try {
+      const response = await fetch('https://api.spotify.com/v1/me/player/play', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          context_uri: `spotify:playlist:${currentPlaylist.id}`,
+          offset: { position: trackIndex }
+        })
+      });
+      
+      if (response.status === 403) {
+        const errorData = await response.json();
+        if (errorData.reason === 'PREMIUM_REQUIRED') {
+          setError('Spotify Premium is required to control playback');
+          return;
+        }
+      }
+      
+      if (!response.ok) {
+        throw new Error('Failed to play track');
+      }
+    } catch (err) {
+      console.error('Error playing track:', err);
+      setError('Failed to play track');
+    }
+  };
+
   return (
     <div className="playlist-view">
       <div className="playlist-header">
@@ -96,8 +127,13 @@ export default function PlaylistView({ token }: PlaylistViewProps) {
         <h2>{currentPlaylist.name}</h2>
       </div>
       <div className="track-list">
-        {currentPlaylist.tracks.items.map(({ track }) => (
-          <div key={track.id} className="track-item">
+        {currentPlaylist.tracks.items.map(({ track }, index) => (
+          <div 
+            key={track.id} 
+            className="track-item"
+            onClick={() => playTrack(index)}
+            style={{ cursor: 'pointer' }}
+          >
             <span className="track-name">{track.name}</span>
             <span className="track-artist">{track.artists[0].name}</span>
             <span className="track-duration">
