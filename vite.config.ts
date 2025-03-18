@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/eatthisplaylist/',
+  base: process.env.NODE_ENV === 'production' ? '/eatthisplaylist/' : '/',
   build: {
     assetsDir: 'assets',
     rollupOptions: {
