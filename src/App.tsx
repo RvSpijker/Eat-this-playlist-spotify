@@ -3,6 +3,7 @@ import './App.css'
 import { AUTH_ENDPOINT, RESPONSE_TYPE, SPOTIFY_CLIENT_ID, SCOPES, REDIRECT_URI } from './config/spotify'
 import PlaylistView from './components/PlaylistView'
 import SnakeGame from './components/SnakeGame'
+import Leaderboard from './components/LeaderBoard'
 
 interface Playlist {
   id: string
@@ -93,6 +94,7 @@ function App() {
                 </div>
                 <div className="right-content">
                   <SnakeGame albumCoverUrl={currentTrack.item.album.images[0].url} playlist={currentPlaylist} token={token} />
+                  <Leaderboard />
                 </div>
               </div>
             </>

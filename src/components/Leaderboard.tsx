@@ -1,0 +1,105 @@
+import { useState, useEffect } from 'react';
+
+interface Score {
+  username: string;
+  score: number;
+}
+
+export default function Leaderboard() {
+  const [scores, setScores] = useState<Score[]>([]);
+  const [username, setUsername] = useState('');
+  const [score, setScore] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, []);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/leaderboard.php');
+      const data = await response.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setScores(data);
+      }
+    } catch (err) {
+      setError('Failed to fetch leaderboard');
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('http://localhost:8000/leaderboard.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          score: parseInt(score),
+        }),
+      });
+      const data = await response.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setUsername('');
+        setScore('');
+        fetchLeaderboard();
+      }
+    } catch (err) {
+      setError('Failed to submit score');
+    }
+  };
+
+  return (
+    <div className="leaderboard">
+      <h2>Leaderboard</h2>
+      {error && <p className="error">{error}</p>}
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Username</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {scores.map((score, index) => (
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td>{score.username}</td>
+              <td>{score.score}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <form onSubmit={handleSubmit}>
+        <h3>Add Score</h3>
+        <div>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <input
+            type="number"
+            placeholder="Score"
+            value={score}
+            onChange={(e) => setScore(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit">Submit Score</button>
+      </form>
+    </div>
+  );
+}
