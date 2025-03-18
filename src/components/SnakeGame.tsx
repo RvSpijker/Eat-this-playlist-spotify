@@ -10,6 +10,9 @@ interface SnakeGameProps {
   albumCoverUrl: string
   token?: string
   playlist?: {
+    id: string
+    name: string
+    images: Array<{ url: string }>
     tracks: {
       items: Array<{
         track: {
@@ -21,7 +24,12 @@ interface SnakeGameProps {
         }
       }>
     }
-  }
+  } | null
+}
+
+interface Position {
+  x: number
+  y: number
 }
 
 interface FoodPosition extends Position {
@@ -36,7 +44,6 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
   const [currentFoodImage, setCurrentFoodImage] = useState(albumCoverUrl)
-  const [currentFoodTrackUri, setCurrentFoodTrackUri] = useState<string>()
 
   // Load album cover image
   useEffect(() => {
@@ -123,7 +130,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
             const randomTrackIndex = Math.floor(Math.random() * playlist.tracks.items.length)
             const randomTrack = playlist.tracks.items[randomTrackIndex].track
             setCurrentFoodImage(randomTrack.album.images[0].url)
-            setCurrentFoodTrackUri(randomTrack.uri)
+
             setFood(prev => ({ ...prev, trackUri: randomTrack.uri }))
           }
           
