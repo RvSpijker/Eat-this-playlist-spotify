@@ -160,17 +160,21 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
   // Handle keyboard controls
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowUp':
+      switch (e.key.toLowerCase()) {
+        case 'arrowup':
+        case 'w':
           if (direction !== 'DOWN') setDirection('UP')
           break
-        case 'ArrowDown':
+        case 'arrowdown':
+        case 's':
           if (direction !== 'UP') setDirection('DOWN')
           break
-        case 'ArrowLeft':
+        case 'arrowleft':
+        case 'a':
           if (direction !== 'RIGHT') setDirection('LEFT')
           break
-        case 'ArrowRight':
+        case 'arrowright':
+        case 'd':
           if (direction !== 'LEFT') setDirection('RIGHT')
           break
       }
