@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
-$dbname = 'trae_leaderboard';
-$username = 'root';
-$password = '';
+$dbname = 'eatthisplaylist';
+$username = 'eatthisplaylist';
+$password = '!hl4Di2vKDW!uq';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);

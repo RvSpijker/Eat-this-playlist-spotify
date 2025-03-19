@@ -7,8 +7,7 @@ interface Score {
 
 export default function Leaderboard() {
   const [scores, setScores] = useState<Score[]>([]);
-  const [username, setUsername] = useState('');
-  const [score, setScore] = useState('');
+
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -17,7 +16,7 @@ export default function Leaderboard() {
 
   const fetchLeaderboard = async () => {
     try {
-      const response = await fetch('http://localhost:8000/leaderboard.php');
+      const response = await fetch('https://rvspijker.nl/server/leaderboard.php');
       const data = await response.json();
       if (data.error) {
         setError(data.error);
@@ -29,31 +28,7 @@ export default function Leaderboard() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('http://localhost:8000/leaderboard.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          score: parseInt(score),
-        }),
-      });
-      const data = await response.json();
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setUsername('');
-        setScore('');
-        fetchLeaderboard();
-      }
-    } catch (err) {
-      setError('Failed to submit score');
-    }
-  };
+
 
   return (
     <div className="leaderboard">
@@ -78,7 +53,7 @@ export default function Leaderboard() {
         </tbody>
       </table>
 
-      <form onSubmit={handleSubmit}>
+      {/* <form onSubmit={handleSubmit}>
         <h3>Add Score</h3>
         <div>
           <input
@@ -99,7 +74,7 @@ export default function Leaderboard() {
           />
         </div>
         <button type="submit">Submit Score</button>
-      </form>
+      </form> */}
     </div>
   );
 }

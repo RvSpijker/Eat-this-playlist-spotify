@@ -103,7 +103,13 @@ export default function PlaylistView({ token, currentPlaylist, onPlaylistChange 
         if (errorData.reason === 'PREMIUM_REQUIRED') {
           setError('Spotify Premium is required to control playback');
           return;
+        } else if (errorData.reason === 'NO_ACTIVE_DEVICE') {
+          setError('No active Spotify device found. Please open Spotify and start playing.');
+          return;
         }
+      } else if (response.status === 404) {
+        setError('No active Spotify device found. Please open Spotify and start playing.');
+        return;
       }
       
       if (!response.ok) {
@@ -111,7 +117,7 @@ export default function PlaylistView({ token, currentPlaylist, onPlaylistChange 
       }
     } catch (err) {
       console.error('Error playing track:', err);
-      setError('Failed to play track');
+      setError('Failed to play track. Please ensure Spotify is open and you have playback permissions.');
     }
   };
 
@@ -130,16 +136,17 @@ export default function PlaylistView({ token, currentPlaylist, onPlaylistChange 
       <div className="track-list">
         {currentPlaylist.tracks.items.map(({ track }, index) => (
           <div 
-            key={track.id} 
+            key={track?.id || index} 
             className="track-item"
-            onClick={() => playTrack(index)}
-            style={{ cursor: 'pointer' }}
+            onClick={() => track && playTrack(index)}
+            style={{ cursor: track ? 'pointer' : 'not-allowed' }}
           >
-            <span className="track-name">{track.name}</span>
-            <span className="track-artist">{track.artists[0].name}</span>
+            <span className="track-name">{track?.name || 'Unknown Track'}</span>
+            <span className="track-artist">{track?.artists?.[0]?.name || 'Unknown Artist'}</span>
             <span className="track-duration">
-              {Math.floor(track.duration_ms / 60000)}:
-              {String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}
+              {track?.duration_ms ? (
+                `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}`
+              ) : '0:00'}
             </span>
           </div>
         ))}
