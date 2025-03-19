@@ -84,47 +84,6 @@ export default function PlaylistView({ token, currentPlaylist, onPlaylistChange 
     return <p>Loading playlist...</p>
   }
 
-  const playTrack = async (trackIndex: number) => {
-    try {
-      const track = currentPlaylist.tracks.items[trackIndex].track;
-      const randomPosition = Math.floor(Math.random() * track.duration_ms);
-
-      const response = await fetch('https://api.spotify.com/v1/me/player/play', {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          context_uri: `spotify:playlist:${currentPlaylist.id}`,
-          offset: { position: trackIndex },
-          position_ms: randomPosition
-        })
-      });
-      
-      if (response.status === 403) {
-        const errorData = await response.json();
-        if (errorData.reason === 'PREMIUM_REQUIRED') {
-          setError('Spotify Premium is required to control playback');
-          return;
-        } else if (errorData.reason === 'NO_ACTIVE_DEVICE') {
-          setError('No active Spotify device found. Please open Spotify and start playing.');
-          return;
-        }
-      } else if (response.status === 404) {
-        setError('No active Spotify device found. Please open Spotify and start playing.');
-        return;
-      }
-      
-      if (!response.ok) {
-        throw new Error('Failed to play track');
-      }
-    } catch (err) {
-      console.error('Error playing track:', err);
-      setError('Failed to play track. Please ensure Spotify is open and you have playback permissions.');
-    }
-  };
-
   return (
     <div className="playlist-view">
       <div className="playlist-header">
@@ -137,6 +96,21 @@ export default function PlaylistView({ token, currentPlaylist, onPlaylistChange 
         )}
         <h2>{currentPlaylist.name}</h2>
       </div>
+      <style>{`
+        .playlist-tracks {
+          margin-top: 20px;
+        }
+        .track-item {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px;
+          cursor: pointer;
+          border-bottom: 1px solid #333;
+        }
+        .track-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      `}</style>
     </div>
   )
 }

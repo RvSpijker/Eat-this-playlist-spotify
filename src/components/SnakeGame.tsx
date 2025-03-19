@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { getAverageColor, mixColors } from '../utils/colorUtils'
+import { getAverageColor } from '../utils/colorUtils'
 
 interface SubmitScoreDialogProps {
   score: number
@@ -85,9 +85,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
   const [score, setScore] = useState(0)
   const [showSubmitDialog, setShowSubmitDialog] = useState(false)
   const [currentFoodImage, setCurrentFoodImage] = useState(albumCoverUrl)
-  const [eatenColors, setEatenColors] = useState<string[]>([])
   const [backgroundColor, setBackgroundColor] = useState('rgb(40, 40, 40)')
-  const [lastDirection, setLastDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT')
 
   // Load album cover image
   useEffect(() => {
@@ -187,15 +185,10 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
 
         // Check food collision
         if (head.x === food.x && head.y === food.y) {
-          setScore(prev => prev + 1)
+          setScore(prev => prev + 0.5)
           // Get color from eaten album cover and update background
           getAverageColor(currentFoodImage).then(color => {
-            setEatenColors(prev => {
-              const newColors = [...prev, color]
-              const mixedColor = mixColors(newColors)
-              setBackgroundColor(mixedColor)
-              return newColors
-            })
+            setBackgroundColor(color)
           })
 
           // Add new segment at the end with the head's album cover
@@ -334,11 +327,10 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
             onClick={() => {
               setSnake([{ x: 10, y: 10, albumCover: albumCoverUrl, direction: 'RIGHT' }])
               setDirection('RIGHT')
-              setLastDirection('RIGHT')
               setScore(0)
               setGameOver(false)
               setShowSubmitDialog(false)
-              setEatenColors([])
+
               setBackgroundColor('rgb(40, 40, 40)')
             }}
           >
