@@ -86,6 +86,9 @@ export default function PlaylistView({ token, currentPlaylist, onPlaylistChange 
 
   const playTrack = async (trackIndex: number) => {
     try {
+      const track = currentPlaylist.tracks.items[trackIndex].track;
+      const randomPosition = Math.floor(Math.random() * track.duration_ms);
+
       const response = await fetch('https://api.spotify.com/v1/me/player/play', {
         method: 'PUT',
         headers: {
@@ -94,7 +97,8 @@ export default function PlaylistView({ token, currentPlaylist, onPlaylistChange 
         },
         body: JSON.stringify({
           context_uri: `spotify:playlist:${currentPlaylist.id}`,
-          offset: { position: trackIndex }
+          offset: { position: trackIndex },
+          position_ms: randomPosition
         })
       });
       
@@ -132,24 +136,6 @@ export default function PlaylistView({ token, currentPlaylist, onPlaylistChange 
           />
         )}
         <h2>{currentPlaylist.name}</h2>
-      </div>
-      <div className="track-list">
-        {currentPlaylist.tracks.items.map(({ track }, index) => (
-          <div 
-            key={track?.id || index} 
-            className="track-item"
-            onClick={() => track && playTrack(index)}
-            style={{ cursor: track ? 'pointer' : 'not-allowed' }}
-          >
-            <span className="track-name">{track?.name || 'Unknown Track'}</span>
-            <span className="track-artist">{track?.artists?.[0]?.name || 'Unknown Artist'}</span>
-            <span className="track-duration">
-              {track?.duration_ms ? (
-                `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}`
-              ) : '0:00'}
-            </span>
-          </div>
-        ))}
       </div>
     </div>
   )

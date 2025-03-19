@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { getAverageColor, mixColors } from '../utils/colorUtils'
 
 interface SubmitScoreDialogProps {
   score: number
@@ -83,6 +84,9 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
   const [score, setScore] = useState(0)
   const [showSubmitDialog, setShowSubmitDialog] = useState(false)
   const [currentFoodImage, setCurrentFoodImage] = useState(albumCoverUrl)
+  const [eatenColors, setEatenColors] = useState<string[]>([])
+  const [backgroundColor, setBackgroundColor] = useState('rgb(40, 40, 40)')
+  const [lastDirection, setLastDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT')
 
   // Load album cover image
   useEffect(() => {
@@ -181,6 +185,16 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
         // Check food collision
         if (head.x === food.x && head.y === food.y) {
           setScore(prev => prev + 1)
+          // Get color from eaten album cover and update background
+          getAverageColor(currentFoodImage).then(color => {
+            setEatenColors(prev => {
+              const newColors = [...prev, color]
+              const mixedColor = mixColors(newColors)
+              setBackgroundColor(mixedColor)
+              return newColors
+            })
+          })
+
           // Add new segment at the end with the head's album cover
           newSnake.push({ 
             x: newSnake[newSnake.length - 1].x,
@@ -255,38 +269,60 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [direction])
 
-  // Draw game
-  useEffect(() => {
-    if (!canvasRef.current) return
-
-    const ctx = canvasRef.current.getContext('2d')
-    if (!ctx) return
-
-    // Clear canvas
-    ctx.fillStyle = '#282828'
-    ctx.fillRect(0, 0, 400, 400)
-
-    // Draw snake segments with their respective album covers
-    snake.forEach(({ x, y, albumCover }) => {
-      const img = new Image()
-      img.src = albumCover
-      ctx.drawImage(img, x * 20, y * 20, 18, 18)
-    })
-
-    // Draw food (album cover)
-    const img = new Image()
-    img.src = currentFoodImage
-    ctx.drawImage(img, food.x * 20, food.y * 20, 20, 20)
-  }, [snake, food, albumCoverUrl])
+  // Calculate rotation for snake head
+  const getRotation = (dir: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') => {
+    switch (dir) {
+      case 'UP': return '270deg'
+      case 'DOWN': return '90deg'
+      case 'LEFT': return '180deg'
+      case 'RIGHT': return '0deg'
+    }
+  }
 
   return (
     <div className="snake-game">
-      <canvas
-        ref={canvasRef}
-        width={400}
-        height={400}
-        style={{ border: '2px solid #1DB954' }}
-      />
+      <div 
+        className="game-board"
+        style={{
+          width: '400px',
+          height: '400px',
+          border: '2px solid #1DB954',
+          position: 'relative',
+          backgroundColor,
+          transition: 'background-color 0.5s ease'
+        }}
+      >
+        {snake.map((segment, index) => (
+          <div
+            key={index}
+            className={`snake-segment ${index === 0 ? 'snake-head' : ''}`}
+            style={{
+              width: '18px',
+              height: '18px',
+              position: 'absolute',
+              left: `${segment.x * 20}px`,
+              top: `${segment.y * 20}px`,
+              backgroundImage: `url(${segment.albumCover})`,
+              backgroundSize: 'cover',
+              transform: index === 0 ? `rotate(${getRotation(direction)})` : 'none',
+              transition: 'all 0.2s ease'
+            }}
+          />
+        ))}
+        <div
+          className="food"
+          style={{
+            width: '20px',
+            height: '20px',
+            position: 'absolute',
+            left: `${food.x * 20}px`,
+            top: `${food.y * 20}px`,
+            backgroundImage: `url(${currentFoodImage})`,
+            backgroundSize: 'cover',
+            transition: 'all 0.3s ease'
+          }}
+        />
+      </div>
       <div className="game-info">
         <p>Score: {score}</p>
         {gameOver && (
@@ -294,9 +330,12 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
             onClick={() => {
               setSnake([{ x: 10, y: 10, albumCover: albumCoverUrl }])
               setDirection('RIGHT')
+              setLastDirection('RIGHT')
               setScore(0)
               setGameOver(false)
               setShowSubmitDialog(false)
+              setEatenColors([])
+              setBackgroundColor('rgb(40, 40, 40)')
             }}
           >
             Play Again
@@ -311,6 +350,22 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
         />
       )}
       <style>{`
+        .snake-segment {
+          border-radius: 2px;
+        }
+        .snake-head {
+          border-radius: 4px;
+          z-index: 2;
+        }
+        .food {
+          border-radius: 50%;
+          animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); }
+        }
         .submit-score-dialog {
           position: fixed;
           top: 50%;

@@ -71,7 +71,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Spotify Now Playing</h1>
+      <h2>Eat this playlist</h2>
       {!token ? (
         <a href={loginUrl} className="login-button">Login with Spotify</a>
       ) : (
@@ -88,11 +88,11 @@ function App() {
                       alt={currentTrack.item.album.name}
                       className="album-cover"
                     />
-                    <p>{currentTrack.item.name} - {currentTrack.item.artists[0].name}</p>
+                    <p style={{ color: 'white' }}>{currentTrack.item.name} - {currentTrack.item.artists[0].name}</p>
                   </div>
                   <PlaylistView token={token} onPlaylistChange={setCurrentPlaylist} currentPlaylist={currentPlaylist} />
                 </div>
-                <div className="right-content">
+                <div className="right-content" style={{ display: 'flex', gap: '20px' }}>
                   <SnakeGame albumCoverUrl={currentTrack.item.album.images[0].url} playlist={currentPlaylist} token={token} />
                   <Leaderboard />
                 </div>
