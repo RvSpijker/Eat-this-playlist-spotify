@@ -1,44 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { getAverageColor } from '../utils/colorUtils'
 
-interface SubmitScoreDialogProps {
-  score: number
-  onSubmit: (submit: boolean) => void
-  token: string | undefined
-}
-
-function SubmitScoreDialog({ score, onSubmit, token }: SubmitScoreDialogProps) {
-  const [username, setUsername] = useState('')
-
-  useEffect(() => {
-    if (token) {
-      // Fetch Spotify username when dialog opens
-      fetch('https://api.spotify.com/v1/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        setUsername(data.display_name || data.id)
-      })
-      .catch(console.error)
-    }
-  }, [token])
-
-  return (
-    <div className="submit-score-dialog">
-      <h2>Game Over!</h2>
-      <p>Your score: {score}</p>
-      <p>Submit as: {username}</p>
-      <div className="dialog-buttons">
-        <button onClick={() => onSubmit(true)}>Submit Score</button>
-        <button onClick={() => onSubmit(false)}>Skip</button>
-      </div>
-    </div>
-  )
-}
-
 interface SnakeSegment {
   x: number
   y: number
@@ -85,9 +47,9 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
   const [direction, setDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT')
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
-  const [showSubmitDialog, setShowSubmitDialog] = useState(false)
   const [currentFoodImage, setCurrentFoodImage] = useState(albumCoverUrl)
   const [backgroundColor, setBackgroundColor] = useState('rgb(40, 40, 40)')
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
   // Load album cover image
   useEffect(() => {
@@ -103,8 +65,8 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
     }
   }, [albumCoverUrl, food])
 
-  const handleSubmitScore = async (submit: boolean) => {
-    if (submit && token) {
+  const handleSubmitScore = async () => {
+    if (token) {
       try {
         const response = await fetch('https://api.spotify.com/v1/me', {
           headers: {
@@ -125,11 +87,12 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
             score,
           }),
         })
+        setSubmitStatus('success')
       } catch (error) {
         console.error('Failed to submit score:', error)
+        setSubmitStatus('error')
       }
     }
-    setShowSubmitDialog(false)
   }
 
   // Game loop
@@ -159,14 +122,14 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
         // Check wall collision
         if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20) {
           setGameOver(true)
-          setShowSubmitDialog(true)
+          setSubmitStatus('idle')
           return prevSnake
         }
 
         // Check self collision
         if (newSnake.some(segment => segment.x === head.x && segment.y === head.y)) {
           setGameOver(true)
-          setShowSubmitDialog(true)
+          setSubmitStatus('idle')
           return prevSnake
         }
 
@@ -323,32 +286,41 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
             transition: 'all 0.1s ease'
           }}
         />
+        {gameOver && (
+          <div className="game-over-overlay">
+            <div className="game-over-content">
+              <h2 className="game-over-text">Game Over!</h2>
+              <button
+                className="play-again-button"
+                onClick={() => {
+                  setSnake([{ x: 10, y: 10, albumCover: albumCoverUrl, direction: 'RIGHT' }])
+                  setDirection('RIGHT')
+                  setScore(0)
+                  setGameOver(false)
+                  setBackgroundColor('rgb(40, 40, 40)')
+                  setSubmitStatus('idle')
+                }}
+              >
+                Play Again
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       <div className="game-info">
         <p>Score: {score}</p>
-        {gameOver && (
-          <button
-            onClick={() => {
-              setSnake([{ x: 10, y: 10, albumCover: albumCoverUrl, direction: 'RIGHT' }])
-              setDirection('RIGHT')
-              setScore(0)
-              setGameOver(false)
-              setShowSubmitDialog(false)
-
-              setBackgroundColor('rgb(40, 40, 40)')
-            }}
-          >
-            Play Again
+        {gameOver && token && submitStatus === 'idle' && (
+          <button className="submit-score-button" onClick={handleSubmitScore}>
+            Submit Score
           </button>
         )}
+        {gameOver && submitStatus === 'success' && (
+          <p className="submit-message success">Score submitted successfully!</p>
+        )}
+        {gameOver && submitStatus === 'error' && (
+          <p className="submit-message error">Failed to submit score. Please try again.</p>
+        )}
       </div>
-      {showSubmitDialog && (
-        <SubmitScoreDialog
-          score={score}
-          onSubmit={handleSubmitScore}
-          token={token}
-        />
-      )}
       <style>{`
         .snake-segment {
           border-radius: 2px;
@@ -366,32 +338,87 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
           50% { transform: scale(1.1); }
           100% { transform: scale(1); }
         }
-        .submit-score-dialog {
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: #282828;
-          padding: 20px;
+        .game-over-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 10;
+        }
+        .game-over-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 20px;
+        }
+        .game-over-text {
+          color: white;
+          font-size: 48px;
+          font-weight: bold;
+          margin: 0;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+          animation: fadeIn 0.5s ease;
+        }
+        .play-again-button {
+          padding: 15px 30px;
+          font-size: 18px;
+          background: #1db954;
+          color: white;
+          border: none;
           border-radius: 8px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: all 0.2s ease;
+          animation: fadeIn 0.5s ease 0.2s backwards;
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .play-again-button:hover {
+          background: #1ed760;
+          transform: scale(1.05);
+        }
+        .game-info {
+          margin-top: 20px;
           text-align: center;
         }
-        .dialog-buttons {
-          display: flex;
-          gap: 10px;
-          justify-content: center;
-          margin-top: 15px;
-        }
-        .dialog-buttons button {
+        .submit-score-button {
+          margin-top: 10px;
           padding: 8px 16px;
+          background: #1db954;
+          color: white;
           border: none;
           border-radius: 4px;
           cursor: pointer;
-          background: #1db954;
-          color: white;
+          font-weight: bold;
+          transition: all 0.2s ease;
         }
-        .dialog-buttons button:hover {
+        .submit-score-button:hover {
           background: #1ed760;
+          transform: scale(1.05);
+        }
+        .submit-message {
+          margin-top: 10px;
+          font-weight: bold;
+          animation: fadeIn 0.5s ease;
+        }
+        .submit-message.success {
+          color: #1db954;
+        }
+        .submit-message.error {
+          color: #ff4444;
         }
       `}</style>
     </div>
