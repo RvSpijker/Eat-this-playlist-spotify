@@ -43,6 +43,7 @@ interface SnakeSegment {
   x: number
   y: number
   albumCover: string
+  direction: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT'
 }
 
 interface SnakeGameProps {
@@ -77,7 +78,7 @@ interface FoodPosition extends Position {
 
 export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [snake, setSnake] = useState<SnakeSegment[]>([{ x: 10, y: 10, albumCover: albumCoverUrl }])
+  const [snake, setSnake] = useState<SnakeSegment[]>([{ x: 10, y: 10, albumCover: albumCoverUrl, direction: 'RIGHT' }])
   const [food, setFood] = useState<FoodPosition>({ x: 5, y: 5 })
   const [direction, setDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT')
   const [gameOver, setGameOver] = useState(false)
@@ -174,12 +175,14 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
           newSnake[i] = { 
             x: newSnake[i - 1].x,
             y: newSnake[i - 1].y,
-            albumCover: newSnake[i].albumCover
+            albumCover: newSnake[i].albumCover,
+            direction: newSnake[i - 1].direction
           }
         }
         
         // Update head position and keep its album cover
         head.albumCover = newSnake[0].albumCover
+        head.direction = direction
         newSnake[0] = head
 
         // Check food collision
@@ -199,7 +202,8 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
           newSnake.push({ 
             x: newSnake[newSnake.length - 1].x,
             y: newSnake[newSnake.length - 1].y,
-            albumCover: head.albumCover
+            albumCover: head.albumCover,
+            direction: newSnake[newSnake.length - 1].direction
           })
           // Update head with food's album cover
           head.albumCover = currentFoodImage
@@ -238,7 +242,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
       })
     }
 
-    const gameLoop = setInterval(moveSnake, 200)
+    const gameLoop = setInterval(moveSnake, 100)
     return () => clearInterval(gameLoop)
   }, [direction, food, gameOver])
 
@@ -304,7 +308,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
               top: `${segment.y * 20}px`,
               backgroundImage: `url(${segment.albumCover})`,
               backgroundSize: 'cover',
-              transform: index === 0 ? `rotate(${getRotation(direction)})` : 'none',
+              transform: `rotate(${getRotation(segment.direction)})`,
               transition: 'all 0.2s ease'
             }}
           />
@@ -319,7 +323,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
             top: `${food.y * 20}px`,
             backgroundImage: `url(${currentFoodImage})`,
             backgroundSize: 'cover',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.1s ease'
           }}
         />
       </div>
@@ -328,7 +332,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
         {gameOver && (
           <button
             onClick={() => {
-              setSnake([{ x: 10, y: 10, albumCover: albumCoverUrl }])
+              setSnake([{ x: 10, y: 10, albumCover: albumCoverUrl, direction: 'RIGHT' }])
               setDirection('RIGHT')
               setLastDirection('RIGHT')
               setScore(0)
