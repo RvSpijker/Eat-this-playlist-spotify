@@ -213,7 +213,8 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                uris: [food.trackUri]
+                uris: [food.trackUri],
+                position_ms: 60000  // Start at 1 minute
               })
             }).catch(console.error)
           }
