@@ -58,6 +58,7 @@ interface SnakeGameProps {
         track: {
           id: string
           uri: string
+          duration_ms: number
           album: {
             images: Array<{ url: string }>
           }
@@ -74,12 +75,13 @@ interface Position {
 
 interface FoodPosition extends Position {
   trackUri?: string
+  trackLenght: number
 }
 
 export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [snake, setSnake] = useState<SnakeSegment[]>([{ x: 10, y: 10, albumCover: albumCoverUrl, direction: 'RIGHT' }])
-  const [food, setFood] = useState<FoodPosition>({ x: 5, y: 5 })
+  const [food, setFood] = useState<FoodPosition>({ x: 5, y: 5, trackLenght: 0 })
   const [direction, setDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT')
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
@@ -202,7 +204,8 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
           head.albumCover = currentFoodImage
           const newFood = {
             x: Math.floor(Math.random() * 20),
-            y: Math.floor(Math.random() * 20)
+            y: Math.floor(Math.random() * 20),
+            trackLenght: 0
           }
           setFood(newFood)
           
@@ -212,11 +215,12 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
             const randomTrack = playlist.tracks.items[randomTrackIndex].track
             setCurrentFoodImage(randomTrack.album.images[0].url)
 
-            setFood(prev => ({ ...prev, trackUri: randomTrack.uri }))
+            setFood(prev => ({ ...prev, trackUri: randomTrack.uri, trackLenght: randomTrack.duration_ms }))
           }
           
           // Play the collected track
           if (token && food.trackUri) {
+            const randomTrackStart = Math.floor(Math.random() * (food.trackLenght - 30000))
             fetch('https://api.spotify.com/v1/me/player/play', {
               method: 'PUT',
               headers: {
@@ -225,7 +229,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
               },
               body: JSON.stringify({
                 uris: [food.trackUri],
-                position_ms: 60000  // Start at 1 minute
+                position_ms: randomTrackStart
               })
             }).catch(console.error)
           }
