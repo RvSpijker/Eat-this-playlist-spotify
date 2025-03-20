@@ -46,7 +46,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
   const [snake, setSnake] = useState<SnakeSegment[]>([{ x: 10, y: 10, albumCover: albumCoverUrl, direction: 'RIGHT' }])
   const [food, setFood] = useState<FoodPosition>({ x: 5, y: 5, trackLenght: 0 })
   const [direction, setDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT')
-  const [directionQueue, setDirectionQueue] = useState<Array<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>>([])
+  const [, setDirectionQueue] = useState<Array<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>>([])
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
   const [currentFoodImage, setCurrentFoodImage] = useState(albumCoverUrl)
