@@ -42,6 +42,7 @@ interface FoodPosition extends Position {
 
 export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const gameBoardRef = useRef<HTMLDivElement>(null)
   const [snake, setSnake] = useState<SnakeSegment[]>([{ x: 10, y: 10, albumCover: albumCoverUrl, direction: 'RIGHT' }])
   const [food, setFood] = useState<FoodPosition>({ x: 5, y: 5, trackLenght: 0 })
   const [direction, setDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT')
@@ -51,6 +52,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
   const [currentFoodImage, setCurrentFoodImage] = useState(albumCoverUrl)
   const [backgroundColor, setBackgroundColor] = useState('rgb(40, 40, 40)')
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [touchStart, setTouchStart] = useState<{x: number, y: number} | null>(null)
 
   // Load album cover image
   useEffect(() => {
@@ -148,6 +150,92 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [direction])
+
+  // Handle touch controls for mobile
+  useEffect(() => {
+    if (!gameBoardRef.current || gameOver) return
+    
+    const handleTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0]
+      setTouchStart({
+        x: touch.clientX,
+        y: touch.clientY
+      })
+    }
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!touchStart) return
+      
+      // Prevent scrolling when swiping
+      e.preventDefault()
+    }
+    
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!touchStart) return
+      
+      const touch = e.changedTouches[0]
+      const deltaX = touch.clientX - touchStart.x
+      const deltaY = touch.clientY - touchStart.y
+      
+      // Determine swipe direction based on which delta is larger
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Horizontal swipe
+        if (deltaX > 30) {
+          // Right swipe
+          addDirectionToQueue('RIGHT')
+        } else if (deltaX < -30) {
+          // Left swipe
+          addDirectionToQueue('LEFT')
+        }
+      } else {
+        // Vertical swipe
+        if (deltaY > 30) {
+          // Down swipe
+          addDirectionToQueue('DOWN')
+        } else if (deltaY < -30) {
+          // Up swipe
+          addDirectionToQueue('UP')
+        }
+      }
+      
+      setTouchStart(null)
+    }
+    
+    const addDirectionToQueue = (newDirection: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') => {
+      // Prevent opposite directions in the queue
+      const isOpposite = (dir1: string, dir2: string) => {
+        return (dir1 === 'UP' && dir2 === 'DOWN') ||
+               (dir1 === 'DOWN' && dir2 === 'UP') ||
+               (dir1 === 'LEFT' && dir2 === 'RIGHT') ||
+               (dir1 === 'RIGHT' && dir2 === 'LEFT')
+      }
+
+      setDirectionQueue(prevQueue => {
+        // If the new direction is opposite to the current direction, ignore it
+        if (isOpposite(newDirection, direction)) {
+          return prevQueue
+        }
+        
+        // If the queue is empty or the new direction is different from the last queued direction
+        if (prevQueue.length === 0 || prevQueue[prevQueue.length - 1] !== newDirection) {
+          // Limit queue size to 2 to prevent long queues
+          return [...prevQueue.slice(-1), newDirection]
+        }
+        return prevQueue
+      })
+    }
+    
+    const gameBoard = gameBoardRef.current
+    gameBoard.addEventListener('touchstart', handleTouchStart)
+    gameBoard.addEventListener('touchmove', handleTouchMove, { passive: false })
+    gameBoard.addEventListener('touchend', handleTouchEnd)
+    
+    return () => {
+      gameBoard.removeEventListener('touchstart', handleTouchStart)
+      gameBoard.removeEventListener('touchmove', handleTouchMove)
+      gameBoard.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [direction, touchStart, gameOver])
 
   // Game loop with input queue processing
   useEffect(() => {
@@ -289,6 +377,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
   return (
     <div className="snake-game">
       <div 
+        ref={gameBoardRef}
         className="game-board"
         style={{
           width: '400px',
