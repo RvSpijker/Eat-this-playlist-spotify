@@ -308,7 +308,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
 
         // Check food collision
         if (head.x === food.x && head.y === food.y) {
-          setScore(prev => prev + 0.5)
+          setScore(prev => prev + 1)
           // Get color from eaten album cover and update background
           getAverageColor(currentFoodImage).then(color => {
             setBackgroundColor(color)
