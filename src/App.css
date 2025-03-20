@@ -107,3 +107,49 @@
   color: #666;
   font-family: monospace;
 }
+
+.content-wrapper {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+}
+
+.left-content {
+  flex: 1;
+}
+
+.right-content {
+  display: flex;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    flex-direction: column;
+  }
+
+  .right-content {
+    flex-direction: column;
+    order: -1; /* This moves the right content (including snake game) to the top */
+  }
+
+  .album-cover {
+    width: 200px;
+    height: 200px;
+  }
+
+  .track-info p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .App {
+    padding: 1rem;
+  }
+
+  .album-cover {
+    width: 150px;
+    height: 150px;
+  }
+}
