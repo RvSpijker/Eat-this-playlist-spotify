@@ -94,7 +94,7 @@ export default function PlaylistView({ token, currentPlaylist, onPlaylistChange 
             className="playlist-cover"
           />
         )}
-        <h2>{currentPlaylist.name}</h2>
+        <h3>{currentPlaylist.name}</h3>
       </div>
       <style>{`
         .playlist-tracks {

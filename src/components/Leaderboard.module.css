@@ -1,0 +1,52 @@
+.leaderboard h2 {
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
+
+.leaderboard table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #181818;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.leaderboard th {
+  background: #1ed860;
+  color: white;
+  font-weight: 600;
+  padding: 1rem;
+  text-align: left;
+}
+
+.leaderboard td {
+  padding: 1rem;
+  border-bottom: 1px solid #282828;
+  color: #b3b3b3;
+}
+
+.leaderboard tr:last-child td {
+  border-bottom: none;
+}
+
+.leaderboard tr:nth-child(even) {
+  background: #212121;
+}
+
+.leaderboard tr:hover {
+  background: #282828;
+}
+
+.leaderboard td:first-child {
+  font-weight: bold;
+  color: #1ed860;
+}
+
+.error {
+  color: #ff4444;
+  text-align: center;
+  margin: 1rem 0;
+}

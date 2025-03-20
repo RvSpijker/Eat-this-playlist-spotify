@@ -9,7 +9,7 @@ require_once 'config.php';
 function getLeaderboard() {
     global $pdo;
     try {
-        $stmt = $pdo->query('SELECT * FROM scores ORDER BY score DESC LIMIT 10');
+        $stmt = $pdo->query('SELECT * FROM scores ORDER BY score DESC LIMIT 8');
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch(PDOException $e) {
         return ['error' => $e->getMessage()];

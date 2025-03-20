@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import styles from './Leaderboard.module.css';
 
 interface Score {
   username: string;
@@ -7,7 +8,6 @@ interface Score {
 
 export default function Leaderboard() {
   const [scores, setScores] = useState<Score[]>([]);
-
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -28,12 +28,10 @@ export default function Leaderboard() {
     }
   };
 
-
-
   return (
-    <div className="leaderboard">
-      <h2>Leaderboard</h2>
-      {error && <p className="error">{error}</p>}
+    <div className={styles.leaderboard}>
+      <h3>Leaderboard</h3>
+      {error && <p className={styles.error}>{error}</p>}
       <table>
         <thead>
           <tr>

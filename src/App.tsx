@@ -20,6 +20,34 @@ function App() {
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  const fetchCurrentTrack = async () => {
+    if (!token) return
+
+    try {
+      const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (response.status === 204) {
+        setError('No track currently playing')
+        return
+      }
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch current track')
+      }
+
+      const data = await response.json()
+      setCurrentTrack(data)
+      setError(null)
+    } catch (err) {
+      setError('Error fetching current track')
+      console.error(err)
+    }
+  }
+
   useEffect(() => {
     const hash = window.location.hash
     if (hash) {
@@ -32,34 +60,6 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const fetchCurrentTrack = async () => {
-      if (!token) return
-
-      try {
-        const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-
-        if (response.status === 204) {
-          setError('No track currently playing')
-          return
-        }
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch current track')
-        }
-
-        const data = await response.json()
-        setCurrentTrack(data)
-        setError(null)
-      } catch (err) {
-        setError('Error fetching current track')
-        console.error(err)
-      }
-    }
-
     if (token) {
       fetchCurrentTrack()
       const interval = setInterval(fetchCurrentTrack, 5000)
@@ -71,7 +71,6 @@ function App() {
 
   return (
     <div className="App">
-      <h2>Eat this playlist</h2>
       {!token ? (
         <a href={loginUrl} className="login-button">Login with Spotify</a>
       ) : (
@@ -93,9 +92,18 @@ function App() {
                   <PlaylistView token={token} onPlaylistChange={setCurrentPlaylist} currentPlaylist={currentPlaylist} />
                 </div>
                 <div className="right-content" style={{ display: 'flex', gap: '20px' }}>
-                  <SnakeGame albumCoverUrl={currentTrack.item.album.images[0].url} playlist={currentPlaylist} token={token} />
-                  <Leaderboard />
+                  <SnakeGame 
+                    albumCoverUrl={currentTrack.item.album.images[0].url} 
+                    playlist={currentPlaylist} 
+                    token={token}
+                    onFoodCollect={() => {
+                      setTimeout(() => {
+                        fetchCurrentTrack()
+                      }, 500)
+                    }}
+                  />
                 </div>
+                  <Leaderboard />
               </div>
             </>
           ) : (

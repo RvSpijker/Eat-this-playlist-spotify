@@ -11,6 +11,7 @@ interface SnakeSegment {
 interface SnakeGameProps {
   albumCoverUrl: string
   token?: string
+  onFoodCollect?: () => void
   playlist?: {
     id: string
     name: string
@@ -40,7 +41,7 @@ interface FoodPosition extends Position {
   trackLenght: number
 }
 
-export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameProps) {
+export default function SnakeGame({ albumCoverUrl, token, playlist, onFoodCollect }: SnakeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const gameBoardRef = useRef<HTMLDivElement>(null)
   const [snake, setSnake] = useState<SnakeSegment[]>([{ x: 10, y: 10, albumCover: albumCoverUrl, direction: 'RIGHT' }])
@@ -339,9 +340,10 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
             setFood(prev => ({ ...prev, trackUri: randomTrack.uri, trackLenght: randomTrack.duration_ms }))
           }
           
-          // Play the collected track
+          // Play the collected track and trigger refresh
           if (token && food.trackUri) {
             const randomTrackStart = Math.floor(Math.random() * (food.trackLenght - 30000))
+            onFoodCollect?.();
             fetch('https://api.spotify.com/v1/me/player/play', {
               method: 'PUT',
               headers: {
@@ -382,7 +384,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
         style={{
           width: '400px',
           height: '400px',
-          border: '2px solid #1DB954',
+          border: '2px solid #1ed860',
           position: 'relative',
           backgroundColor,
           transition: 'background-color 0.5s ease'
@@ -499,7 +501,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
         .play-again-button {
           padding: 15px 30px;
           font-size: 18px;
-          background: #1db954;
+          background: #1ed860;
           color: white;
           border: none;
           border-radius: 8px;
@@ -529,7 +531,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
         .submit-score-button {
           margin-top: 10px;
           padding: 8px 16px;
-          background: #1db954;
+          background: #1ed860;
           color: white;
           border: none;
           border-radius: 4px;
@@ -547,7 +549,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
           animation: fadeIn 0.5s ease;
         }
         .submit-message.success {
-          color: #1db954;
+          color: #1ed860;
         }
         .submit-message.error {
           color: #ff4444;
