@@ -45,6 +45,7 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
   const [snake, setSnake] = useState<SnakeSegment[]>([{ x: 10, y: 10, albumCover: albumCoverUrl, direction: 'RIGHT' }])
   const [food, setFood] = useState<FoodPosition>({ x: 5, y: 5, trackLenght: 0 })
   const [direction, setDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT')
+  const [directionQueue, setDirectionQueue] = useState<Array<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>>([])
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
   const [currentFoodImage, setCurrentFoodImage] = useState(albumCoverUrl)
@@ -95,7 +96,60 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
     }
   }
 
-  // Game loop
+  // Handle keyboard controls with input queue
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      let newDirection: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | null = null
+      
+      switch (e.key.toLowerCase()) {
+        case 'arrowup':
+        case 'w':
+          newDirection = 'UP'
+          break
+        case 'arrowdown':
+        case 's':
+          newDirection = 'DOWN'
+          break
+        case 'arrowleft':
+        case 'a':
+          newDirection = 'LEFT'
+          break
+        case 'arrowright':
+        case 'd':
+          newDirection = 'RIGHT'
+          break
+      }
+
+      if (newDirection) {
+        // Prevent opposite directions in the queue
+        const isOpposite = (dir1: string, dir2: string) => {
+          return (dir1 === 'UP' && dir2 === 'DOWN') ||
+                 (dir1 === 'DOWN' && dir2 === 'UP') ||
+                 (dir1 === 'LEFT' && dir2 === 'RIGHT') ||
+                 (dir1 === 'RIGHT' && dir2 === 'LEFT')
+        }
+
+        setDirectionQueue(prevQueue => {
+          // If the new direction is opposite to the current direction, ignore it
+          if (isOpposite(newDirection!, direction)) {
+            return prevQueue
+          }
+          
+          // If the queue is empty or the new direction is different from the last queued direction
+          if (prevQueue.length === 0 || prevQueue[prevQueue.length - 1] !== newDirection) {
+            // Limit queue size to 2 to prevent long queues
+            return [...prevQueue.slice(-1), newDirection!]
+          }
+          return prevQueue
+        })
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [direction])
+
+  // Game loop with input queue processing
   useEffect(() => {
     if (gameOver) return
 
@@ -103,6 +157,22 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
       setSnake(prevSnake => {
         const newSnake = [...prevSnake]
         const head = { ...newSnake[0] }
+
+        // Process the direction queue
+        setDirectionQueue(prevQueue => {
+          if (prevQueue.length > 0) {
+            const nextDirection = prevQueue[0]
+            // Only change direction if it's not opposite to current direction
+            if (!((nextDirection === 'UP' && direction === 'DOWN') ||
+                  (nextDirection === 'DOWN' && direction === 'UP') ||
+                  (nextDirection === 'LEFT' && direction === 'RIGHT') ||
+                  (nextDirection === 'RIGHT' && direction === 'LEFT'))) {
+              setDirection(nextDirection)
+            }
+            return prevQueue.slice(1)
+          }
+          return prevQueue
+        })
 
         switch (direction) {
           case 'UP':
@@ -205,33 +275,6 @@ export default function SnakeGame({ albumCoverUrl, token, playlist }: SnakeGameP
     const gameLoop = setInterval(moveSnake, 100)
     return () => clearInterval(gameLoop)
   }, [direction, food, gameOver])
-
-  // Handle keyboard controls
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      switch (e.key.toLowerCase()) {
-        case 'arrowup':
-        case 'w':
-          if (direction !== 'DOWN') setDirection('UP')
-          break
-        case 'arrowdown':
-        case 's':
-          if (direction !== 'UP') setDirection('DOWN')
-          break
-        case 'arrowleft':
-        case 'a':
-          if (direction !== 'RIGHT') setDirection('LEFT')
-          break
-        case 'arrowright':
-        case 'd':
-          if (direction !== 'LEFT') setDirection('RIGHT')
-          break
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [direction])
 
   // Calculate rotation for snake head
   const getRotation = (dir: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') => {
