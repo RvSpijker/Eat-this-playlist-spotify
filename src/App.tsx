@@ -72,7 +72,13 @@ function App() {
   return (
     <div className="App">
       {!token ? (
-        <a href={loginUrl} className="login-button">Login with Spotify</a>
+        <div className="login-section">
+          <a href={loginUrl} className="login-button">Login with Spotify</a>
+          <p className="login-info">
+            Note: Email must be whitelisted to use this version. 
+            Try our <a href="https://rvspijker.nl/eatthisplaylistyt/" className="youtube-link">YouTube version</a> with no whitelist required!
+          </p>
+        </div>
       ) : (
         <div className="now-playing">
           {error ? (

@@ -1,11 +1,10 @@
 .App {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100vw;
+  height: 100vh;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
+  text-align: center;
 }
 
 .login-button {
@@ -22,6 +21,29 @@
 
 .login-button:hover {
   background-color: #1ed760;
+}
+
+.login-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.login-info {
+  color: #888;
+  font-size: 0.9rem;
+  max-width: 400px;
+  text-align: center;
+}
+
+.youtube-link {
+  color: #ff0000;
+  text-decoration: underline;
+}
+
+.youtube-link:hover {
+  color: #cc0000;
 }
 
 .now-playing {
